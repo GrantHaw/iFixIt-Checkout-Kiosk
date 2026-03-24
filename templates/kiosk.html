@@ -191,7 +191,15 @@ body{width:600px;height:1024px;background:#111;color:#fff;font-family:system-ui,
     </div>
     <div class="sr-action" onclick="seniorReturn()">
       <div class="sr-icon return">&#10003;</div>
-      <div><h3>Return for someone</h3><p>Select a user and report bits</p></div>
+      <div><h3>Return for someone</h3><p>Select the user returning</p></div>
+    </div>
+    <div class="sr-action" onclick="seniorSelfCheckout()">
+      <div class="sr-icon checkout" style="opacity:0.6">+</div>
+      <div><h3>Check out for myself</h3><p>Grab a kit and sign out</p></div>
+    </div>
+    <div class="sr-action" onclick="seniorSelfReturn()">
+      <div class="sr-icon return" style="opacity:0.6">&#10003;</div>
+      <div><h3>Return for myself</h3><p>Return a kit and sign out</p></div>
     </div>
   </div>
 </div>
@@ -502,6 +510,9 @@ function resetIdle(){
 }
 document.addEventListener('click',resetIdle);document.addEventListener('keydown',resetIdle);
 goIdle();
+
+function seniorSelfCheckout(){currentUser=seniorUser;seniorMode=false;flowMode='checkout';loadKitSelect(false)}
+function seniorSelfReturn(){currentUser=seniorUser;seniorMode=false;flowMode='return';loadReturnKitSelect()}
 </script>
 </body>
 </html>
