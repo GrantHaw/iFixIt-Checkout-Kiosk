@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  kiosk-server:
+    build: .
+    container_name: ifixit-kiosk
+    restart: unless-stopped
+    ports:
+      - "5123:5000"  # pick whatever port isnt taken on skyfall
+    volumes:
+      - ./data:/data  # sqlite db persists here
+    environment:
+      - DB_PATH=/data/kiosk.db
+      - SECRET_KEY=change-this-to-something-random
+      - FLASK_DEBUG=false
+    # on unraid you can also set network_mode: "host" if you want
+    # tailscale access and dont wanna deal with port mapping

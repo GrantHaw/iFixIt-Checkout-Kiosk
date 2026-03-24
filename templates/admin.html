@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>iFixit Kit Manager</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#ccc; font-family:system-ui,sans-serif; padding:24px; max-width:1000px; margin:0 auto; }
+h1 { color:#E87A1E; font-size:24px; margin-bottom:4px; }
+.subtitle { color:#666; font-size:13px; margin-bottom:24px; }
+.tabs { display:flex; gap:0; margin-bottom:24px; border-bottom:1px solid #333; }
+.tab { padding:10px 20px; color:#888; text-decoration:none; font-size:14px; border-bottom:2px solid transparent; }
+.tab:hover { color:#fff; }
+.tab.active { color:#E87A1E; border-bottom-color:#E87A1E; }
+.section { display:none; }
+.section:target, .section.default { display:block; }
+.card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:10px; padding:20px; margin-bottom:16px; }
+.card h2 { color:#fff; font-size:16px; margin-bottom:12px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; color:#888; font-size:11px; text-transform:uppercase; letter-spacing:1px; padding:8px 12px; border-bottom:1px solid #333; }
+td { padding:8px 12px; border-bottom:1px solid #222; }
+tr:hover td { background:#222; }
+.badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+.badge.available { background:#1a3a1a; color:#4ade80; }
+.badge.checked_out { background:#3a2a0a; color:#c9a44a; }
+.badge.partial { background:#3a1a0a; color:#e87a1e; }
+.badge.senior { background:#1a1a3a; color:#818cf8; }
+input, select { background:#222; border:1px solid #444; color:#fff; padding:8px 12px; border-radius:6px; font-size:13px; }
+input:focus { outline:none; border-color:#E87A1E; }
+label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
+.form-row { display:flex; gap:12px; align-items:end; margin-bottom:12px; flex-wrap:wrap; }
+.form-group { display:flex; flex-direction:column; }
+.btn { padding:8px 16px; border-radius:6px; border:none; cursor:pointer; font-size:13px; font-weight:500; }
+.btn-primary { background:#E87A1E; color:#1a1a1a; }
+.btn-danger { background:#3a1a1a; color:#e55; border:1px solid #e55; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-senior { background:#1a1a3a; color:#818cf8; border:1px solid #818cf8; }
+.flash { padding:10px 16px; border-radius:6px; margin-bottom:16px; font-size:13px; }
+.flash.success { background:#1a3a1a; color:#4ade80; border:1px solid #2a5a2a; }
+.toggle { position:relative; display:inline-block; width:40px; height:22px; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#333; border-radius:11px; transition:0.2s; }
+.toggle .slider:before { content:""; position:absolute; height:16px; width:16px; left:3px; bottom:3px; background:#888; border-radius:50%; transition:0.2s; }
+.toggle input:checked + .slider { background:#E87A1E; }
+.toggle input:checked + .slider:before { transform:translateX(18px); background:#fff; }
+.cb { display:flex; align-items:center; gap:8px; margin-top:8px; }
+.cb input[type=checkbox] { width:16px; height:16px; accent-color:#E87A1E; }
+</style>
+</head>
+<body>
+
+<h1>iFixit Kit Manager</h1>
+<p class="subtitle">Skyfall &middot; ITS Desktop Support</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="flash {{ cat }}">{{ msg }}</div>
+{% endfor %}
+{% endwith %}
+
+<div class="tabs">
+  <a href="#kits" class="tab active" onclick="showTab('kits',this)">Kits</a>
+  <a href="#users" class="tab" onclick="showTab('users',this)">Users</a>
+  <a href="#history" class="tab" onclick="showTab('history',this)">History</a>
+  <a href="#config" class="tab" onclick="showTab('config',this)">Config</a>
+</div>
+
+<!-- KITS TAB -->
+<div id="kits" class="section default">
+  <div class="card">
+    <h2>Kits</h2>
+    <table>
+      <tr><th>Name</th><th>Status</th><th>Bits</th><th>Checked out by</th><th></th></tr>
+      {% for k in kits %}
+      <tr>
+        <td><a href="/admin/kits/{{ k.id }}" style="color:#E87A1E;text-decoration:none;">{{ k.name }}</a></td>
+        <td>
+          {% if k.status == 'available' %}
+            {% if k.missing_count > 0 %}
+              <span class="badge partial">{{ k.missing_count }} missing</span>
+            {% else %}
+              <span class="badge available">available</span>
+            {% endif %}
+          {% else %}
+            <span class="badge checked_out">checked out</span>
+          {% endif %}
+        </td>
+        <td>{{ k.total_bits - k.missing_count }}/{{ k.total_bits }}</td>
+        <td>{{ k.checked_out_by_name or '—' }}</td>
+        <td>
+          <form method="post" action="/admin/kits/{{ k.id }}/delete" style="display:inline;" onsubmit="return confirm('delete this kit?')">
+            <button type="submit" class="btn btn-danger btn-sm">delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not kits %}
+      <tr><td colspan="5" style="color:#666;">no kits yet</td></tr>
+      {% endif %}
+    </table>
+  </div>
+  <div class="card">
+    <h2>Add Mako kit</h2>
+    <form method="post" action="/admin/kits/add">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kit name</label>
+          <input type="text" name="name" placeholder="Kit A" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add kit</button>
+      </div>
+      <p style="color:#666;font-size:12px;">Creates a Mako 64-bit kit with all standard bits + flex + driver</p>
+    </form>
+  </div>
+</div>
+
+<!-- USERS TAB -->
+<div id="users" class="section">
+  <div class="card">
+    <h2>Users</h2>
+    <table>
+      <tr><th>Name</th><th>Card ID</th><th>Role</th><th></th></tr>
+      {% for u in users %}
+      <tr>
+        <td style="color:#fff;">{{ u.name }}</td>
+        <td><code style="color:#888;font-size:11px;">{{ u.nfc_uid or '—' }}</code></td>
+        <td>
+          {% if u.is_senior %}
+            <span class="badge senior">senior</span>
+          {% else %}
+            <span style="color:#666;font-size:11px;">user</span>
+          {% endif %}
+        </td>
+        <td style="white-space:nowrap;">
+          <form method="post" action="/admin/users/{{ u.id }}/toggle-senior" style="display:inline;">
+            <button type="submit" class="btn btn-sm {% if u.is_senior %}btn-senior{% else %}btn-primary{% endif %}">
+              {% if u.is_senior %}demote{% else %}promote{% endif %}
+            </button>
+          </form>
+          <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline;" onsubmit="return confirm('delete {{ u.name }}?')">
+            <button type="submit" class="btn btn-danger btn-sm">delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not users %}
+      <tr><td colspan="4" style="color:#666;">no users yet</td></tr>
+      {% endif %}
+    </table>
+  </div>
+  <div class="card">
+    <h2>Add user</h2>
+    <form method="post" action="/admin/users/add">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" placeholder="Grant" required>
+        </div>
+        <div class="form-group">
+          <label>Card ID</label>
+          <input type="text" name="nfc_uid" placeholder="426007842">
+        </div>
+        <button type="submit" class="btn btn-primary">Add user</button>
+      </div>
+      <div class="cb">
+        <input type="checkbox" name="is_senior" id="is_senior" value="1">
+        <label for="is_senior" style="margin:0;cursor:pointer;">Senior (can check out kits for others)</label>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="history" class="section">
+  <div class="card">
+    <h2>Checkout history</h2>
+    <table>
+      <tr><th>Kit</th><th>User</th><th>Checked out</th><th>Returned</th><th>Missing</th></tr>
+      {% for h in history %}
+      <tr>
+        <td style="color:#fff;">{{ h.kit_name }}</td>
+        <td>{{ h.user_name }}</td>
+        <td><code style="font-size:11px;color:#888;">{{ h.checked_out_at }}</code></td>
+        <td><code style="font-size:11px;color:#888;">{{ h.returned_at or 'still out' }}</code></td>
+        <td>
+          {% if h.missing_after is not none and h.missing_after > h.missing_before %}
+            <span style="color:#e55;">{{ h.missing_before }} &rarr; {{ h.missing_after }}</span>
+          {% elif h.missing_after is not none %}
+            {{ h.missing_before }} &rarr; {{ h.missing_after }}
+          {% else %}
+            {{ h.missing_before }} at checkout
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not history %}
+      <tr><td colspan="5" style="color:#666;">no checkouts yet</td></tr>
+      {% endif %}
+    </table>
+  </div>
+</div>
+
+<!-- CONFIG TAB -->
+<div id="config" class="section">
+  <div class="card">
+    <h2>Slack integration</h2>
+    <form method="post" action="/admin/config">
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label>Webhook URL</label>
+          <input type="text" name="slack_webhook_url" placeholder="https://hooks.slack.com/services/..." style="width:100%;">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Channel</label>
+          <input type="text" name="slack_channel" value="#ifixit-kits">
+        </div>
+        <div class="form-group">
+          <label>Enabled</label>
+          <label class="toggle" style="margin-top:4px;">
+            <input type="checkbox" name="slack_enabled" value="1">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+      <p style="color:#666;font-size:12px;margin-top:8px;">Alerts fire when a kit is returned with MORE missing bits than before</p>
+    </form>
+  </div>
+</div>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => { s.style.display = 'none'; s.classList.remove('default'); });
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  el.classList.add('active');
+}
+if (location.hash) {
+  var id = location.hash.slice(1);
+  var tab = document.querySelector('.tab[href="#'+id+'"]');
+  if (tab) showTab(id, tab);
+}
+</script>
+</body>
+</html>

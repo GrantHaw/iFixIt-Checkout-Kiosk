@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{ kit.name }} — iFixit Kit Manager</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0e0e; color:#ccc; font-family:system-ui,sans-serif; padding:24px; max-width:900px; margin:0 auto; }
+a { color:#E87A1E; text-decoration:none; }
+a:hover { text-decoration:underline; }
+h1 { color:#E87A1E; font-size:24px; margin-bottom:4px; }
+.subtitle { color:#666; font-size:13px; margin-bottom:24px; }
+.back { color:#888; font-size:13px; margin-bottom:16px; display:inline-block; }
+
+.card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:10px; padding:20px; margin-bottom:16px; }
+.card h2 { color:#fff; font-size:16px; margin-bottom:4px; }
+.card .sub { color:#666; font-size:12px; margin-bottom:16px; }
+
+.stats { display:flex; gap:16px; margin-bottom:20px; }
+.stat { background:#222; border-radius:8px; padding:12px 16px; flex:1; }
+.stat .num { font-size:22px; font-weight:600; color:#fff; }
+.stat .label { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+.stat.warn .num { color:#E87A1E; }
+
+.bit-grid { display:flex; flex-wrap:wrap; gap:6px; }
+
+.bit {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:6px; font-size:12px;
+  cursor:pointer; border:none; font-family:inherit;
+  transition:opacity 0.1s;
+}
+.bit:hover { opacity:0.8; }
+.bit.present { background:#1a2e1a; color:#4ade80; border:1px solid #2a4a2a; }
+.bit.missing { background:#2e1a1a; color:#e55; border:1px solid #4a2a2a; }
+.bit code { font-size:11px; font-family:monospace; }
+
+.flash { padding:10px 16px; border-radius:6px; margin-bottom:16px; font-size:13px; }
+.flash.success { background:#1a3a1a; color:#4ade80; border:1px solid #2a5a2a; }
+</style>
+</head>
+<body>
+
+<a href="/admin" class="back">← back to kits</a>
+
+<h1>{{ kit.name }}</h1>
+<p class="subtitle">
+  {% if kit.status == 'checked_out' %}
+    Checked out by {{ kit.checked_out_by_name }}
+  {% else %}
+    Available
+  {% endif %}
+</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="flash {{ cat }}">{{ msg }}</div>
+{% endfor %}
+{% endwith %}
+
+{% set present_count = bits | selectattr('present') | list | length %}
+{% set missing_count = bits | rejectattr('present') | list | length %}
+
+<div class="stats">
+  <div class="stat">
+    <div class="num">{{ bits | length }}</div>
+    <div class="label">Total items</div>
+  </div>
+  <div class="stat">
+    <div class="num">{{ present_count }}</div>
+    <div class="label">Present</div>
+  </div>
+  <div class="stat {{ 'warn' if missing_count > 0 else '' }}">
+    <div class="num">{{ missing_count }}</div>
+    <div class="label">Missing</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Bits &amp; tools</h2>
+  <p class="sub">Click a bit to toggle present/missing</p>
+  <div class="bit-grid">
+    {% for b in bits %}
+    <form method="post" action="/admin/kits/{{ kit.id }}/bits/{{ b.id }}/toggle" style="display:inline;">
+      <button type="submit" class="bit {{ 'present' if b.present else 'missing' }}">
+        {% if b.present %}✓{% else %}✗{% endif %}
+        <code>{{ b.bit_name }}</code>
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+
+</body>
+</html>
