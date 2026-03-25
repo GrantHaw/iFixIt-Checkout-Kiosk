@@ -20,6 +20,11 @@ class ReverseProxied:
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
+@app.context_processor
+def inject_script_root():
+    # hardcode since we always run at /kitkiosk
+    return {'SCRIPT_ROOT': '/kitkiosk'}
+    
 app.secret_key = os.environ.get("SECRET_KEY", "changeme-in-prod-obviously")
 
 with app.app_context():
