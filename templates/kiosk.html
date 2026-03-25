@@ -258,7 +258,7 @@ body{width:600px;height:1024px;background:#111;color:#fff;font-family:system-ui,
 </div>
 
 <script>
-var seniorUser=null,currentUser=null,currentKit=null,swipeBuffer='',swipeTimeout=null,countdownTimer=null,API='';
+var seniorUser=null,currentUser=null,currentKit=null,swipeBuffer='',swipeTimeout=null,countdownTimer=null,API='{{ request.script_root }}';
 var missingSet=new Set();
 var seniorMode=false; // true when a senior is logged in
 var flowMode=''; // 'checkout' or 'return'

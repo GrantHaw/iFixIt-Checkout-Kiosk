@@ -4,6 +4,22 @@ from slack_notify import send_slack_alert
 import os
 
 app = Flask(__name__)
+
+class ReverseProxied:
+    # handles subpath mounting, e.g. /kitkiosk/
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, environ, start_response):
+        script = environ.get("HTTP_X_SCRIPT_NAME", "")
+        if script:
+            environ["SCRIPT_NAME"] = script
+            p = environ["PATH_INFO"]
+            if p.startswith(script):
+                environ["PATH_INFO"] = p[len(script):]
+        return self.app(environ, start_response)
+
+app.wsgi_app = ReverseProxied(app.wsgi_app)
+
 app.secret_key = os.environ.get("SECRET_KEY", "changeme-in-prod-obviously")
 
 with app.app_context():
