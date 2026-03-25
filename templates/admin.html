@@ -73,7 +73,7 @@ label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
       <tr><th>Name</th><th>Status</th><th>Bits</th><th>Checked out by</th><th></th></tr>
       {% for k in kits %}
       <tr>
-        <td><a href="/kitkiosk/admin/kits/{{ k.id }}" style="color:#E87A1E;text-decoration:none;">{{ k.name }}</a></td>
+        <td><a href="/admin/kits/{{ k.id }}" style="color:#E87A1E;text-decoration:none;">{{ k.name }}</a></td>
         <td>
           {% if k.status == 'available' %}
             {% if k.missing_count > 0 %}
@@ -88,7 +88,7 @@ label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
         <td>{{ k.total_bits - k.missing_count }}/{{ k.total_bits }}</td>
         <td>{{ k.checked_out_by_name or '—' }}</td>
         <td>
-          <form method="post" action="/kitkiosk/admin/kits/{{ k.id }}/delete" style="display:inline;" onsubmit="return confirm('delete this kit?')">
+          <form method="post" action="/admin/kits/{{ k.id }}/delete" style="display:inline;" onsubmit="return confirm('delete this kit?')">
             <button type="submit" class="btn btn-danger btn-sm">delete</button>
           </form>
         </td>
@@ -101,7 +101,7 @@ label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
   </div>
   <div class="card">
     <h2>Add Mako kit</h2>
-    <form method="post" action="/kitkiosk/admin/kits/add">
+    <form method="post" action="/admin/kits/add">
       <div class="form-row">
         <div class="form-group">
           <label>Kit name</label>
@@ -132,12 +132,12 @@ label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
           {% endif %}
         </td>
         <td style="white-space:nowrap;">
-          <form method="post" action="/kitkiosk/admin/users/{{ u.id }}/toggle-senior" style="display:inline;">
+          <form method="post" action="/admin/users/{{ u.id }}/toggle-senior" style="display:inline;">
             <button type="submit" class="btn btn-sm {% if u.is_senior %}btn-senior{% else %}btn-primary{% endif %}">
               {% if u.is_senior %}demote{% else %}promote{% endif %}
             </button>
           </form>
-          <form method="post" action="/kitkiosk/admin/users/{{ u.id }}/delete" style="display:inline;" onsubmit="return confirm('delete {{ u.name }}?')">
+          <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline;" onsubmit="return confirm('delete {{ u.name }}?')">
             <button type="submit" class="btn btn-danger btn-sm">delete</button>
           </form>
         </td>
@@ -150,7 +150,7 @@ label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
   </div>
   <div class="card">
     <h2>Add user</h2>
-    <form method="post" action="/kitkiosk/admin/users/add">
+    <form method="post" action="/admin/users/add">
       <div class="form-row">
         <div class="form-group">
           <label>Name</label>
@@ -204,7 +204,7 @@ label { display:block; color:#888; font-size:12px; margin-bottom:4px; }
 <div id="config" class="section">
   <div class="card">
     <h2>Slack integration</h2>
-    <form method="post" action="/kitkiosk/admin/config">
+    <form method="post" action="/admin/config">
       <div class="form-row">
         <div class="form-group" style="flex:1;">
           <label>Webhook URL</label>
