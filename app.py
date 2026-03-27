@@ -7,6 +7,22 @@ app = Flask(__name__)
 
 app.secret_key = os.environ.get("SECRET_KEY", "changeme-in-prod-obviously")
 
+# prefix-aware middleware so url_for() works behind nginx subpath
+class ReverseProxied:
+    """make flask aware it lives behind a prefix like /kitkiosk"""
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, environ, start_response):
+        script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
+        if script_name:
+            environ['SCRIPT_NAME'] = script_name
+            path_info = environ.get('PATH_INFO', '')
+            if path_info.startswith(script_name):
+                environ['PATH_INFO'] = path_info[len(script_name):]
+        return self.app(environ, start_response)
+
+app.wsgi_app = ReverseProxied(app.wsgi_app)
+
 with app.app_context():
     db.init_db()
 

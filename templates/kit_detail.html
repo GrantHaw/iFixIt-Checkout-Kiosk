@@ -41,7 +41,7 @@ h1 { color:#E87A1E; font-size:24px; margin-bottom:4px; }
 </head>
 <body>
 
-<a href="/admin" class="back">← back to kits</a>
+<a href="{{ url_for('admin_home') }}" class="back">← back to kits</a>
 
 <h1>{{ kit.name }}</h1>
 <p class="subtitle">
@@ -81,7 +81,7 @@ h1 { color:#E87A1E; font-size:24px; margin-bottom:4px; }
   <p class="sub">Click a bit to toggle present/missing</p>
   <div class="bit-grid">
     {% for b in bits %}
-    <form method="post" action="/admin/kits/{{ kit.id }}/bits/{{ b.id }}/toggle" style="display:inline;">
+    <form method="post" action="{{ url_for('admin_toggle_bit', kid=kit.id, bid=b.id) }}" style="display:inline;">
       <button type="submit" class="bit {{ 'present' if b.present else 'missing' }}">
         {% if b.present %}✓{% else %}✗{% endif %}
         <code>{{ b.bit_name }}</code>
